@@ -1,9 +1,10 @@
 <script lang="ts">
   import { metricsStore } from '$lib/stores/metricsStore';
-  import type { CoverageResult } from '$lib/utils/types';
+  import type { CoverageResult, CoverageMetricType } from '$lib/utils/types';
 
   let results: CoverageResult[] = [];
-  let selectedMetric = 'du-pair';
+  let selectedMetric: CoverageMetricType = 'du-pair';
+  const metricOptions: CoverageMetricType[] = ['du-pair', 'prime-path', 'node', 'edge', 'all-paths', 'mcc'];
 
   metricsStore.subscribe((metrics) => {
     results = metrics.results || [];
@@ -29,7 +30,7 @@
   }
 
   function formatPercentage(value: number): string {
-    return (value * 100).toFixed(1);
+    return value.toFixed(1);
   }
 
 </script>
@@ -38,7 +39,7 @@
   <div class="results-header">
     <h2>Coverage Results</h2>
     <div class="metric-selector">
-      {#each ['du-pair', 'prime-path', 'node', 'edge', 'all-paths', 'mcc'] as metric}
+      {#each metricOptions as metric}
         <button
           class="metric-btn"
           class:active={selectedMetric === metric}
@@ -82,15 +83,15 @@
               {/if}
             </div>
 
-            {#if result.metrics[selectedMetric].uncoveredItems && result.metrics[selectedMetric].uncoveredItems.length > 0}
+            {#if (result.metrics[selectedMetric].uncoveredItems ?? []).length > 0}
               <div class="uncovered-section">
-                <h4>Uncovered Items ({result.metrics[selectedMetric].uncoveredItems.length}):</h4>
+                <h4>Uncovered Items ({(result.metrics[selectedMetric].uncoveredItems ?? []).length}):</h4>
                 <ul class="uncovered-list">
-                  {#each result.metrics[selectedMetric].uncoveredItems.slice(0, 10) as item}
+                  {#each (result.metrics[selectedMetric].uncoveredItems ?? []).slice(0, 10) as item}
                     <li>{item}</li>
                   {/each}
-                  {#if result.metrics[selectedMetric].uncoveredItems.length > 10}
-                    <li class="more">+{result.metrics[selectedMetric].uncoveredItems.length - 10} more...</li>
+                  {#if (result.metrics[selectedMetric].uncoveredItems ?? []).length > 10}
+                    <li class="more">+{(result.metrics[selectedMetric].uncoveredItems ?? []).length - 10} more...</li>
                   {/if}
                 </ul>
               </div>
@@ -136,6 +137,7 @@
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: white;
+    color: #374151;
     cursor: pointer;
     font-size: 12px;
     transition: all 0.2s;

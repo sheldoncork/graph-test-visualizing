@@ -3,12 +3,13 @@
  * Manages coverage metrics selection and results
  */
 import { writable, type Writable, derived } from 'svelte/store';
-import type { CoverageMetricType, CoverageResult, CoverageMetric, TestPath } from '$lib/utils/types';
+import type { CoverageMetricType, CoverageResult, CoverageMetric, TestPath, DefUsePair } from '$lib/utils/types';
 
 export interface MetricsState {
   selectedMetrics: Set<CoverageMetricType>;
   results: CoverageResult[] | null;
   testPaths: TestPath[];
+  duPairs: DefUsePair[];
   isCalculating: boolean;
   error: string | null;
 }
@@ -17,6 +18,7 @@ const initialState: MetricsState = {
   selectedMetrics: new Set(['du-pair', 'prime-path']), // Default: DU-pair and prime-path
   results: null,
   testPaths: [],
+  duPairs: [],
   isCalculating: false,
   error: null
 };
@@ -70,6 +72,16 @@ export function setTestPaths(testPaths: TestPath[]): void {
   metricsStore.update((state) => ({
     ...state,
     testPaths
+  }));
+}
+
+/**
+ * Set DU-pairs
+ */
+export function setDUPairs(duPairs: DefUsePair[]): void {
+  metricsStore.update((state) => ({
+    ...state,
+    duPairs
   }));
 }
 

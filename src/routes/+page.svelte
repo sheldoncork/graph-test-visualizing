@@ -229,7 +229,7 @@
 
   .main {
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -237,7 +237,8 @@
   }
 
   .graph-viewer-section {
-    flex: 2;
+    flex: 1 1 55%;
+    min-height: 280px;
     background: white;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -245,10 +246,21 @@
   }
 
   .metrics-section {
-    flex: 1;
+    flex: 1 1 45%;
+    min-height: 260px;
     background: white;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
+    overflow: hidden;
+  }
+
+  @media (max-height: 820px) {
+    .graph-viewer-section {
+      min-height: 240px;
+    }
+
+    .metrics-section {
+      min-height: 300px;
+    }
   }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { graphStore } from '$lib/stores/graphStore';
-  import { metricsStore, setTestPaths } from '$lib/stores/metricsStore';
+  import { metricsStore, setDUPairs } from '$lib/stores/metricsStore';
   import type { Graph, DefUsePair } from '$lib/utils/types';
 
   let graph: Graph | null = null;
@@ -11,6 +11,10 @@
 
   graphStore.subscribe((state) => {
     graph = state.current;
+  });
+
+  metricsStore.subscribe((state) => {
+    duPairs = state.duPairs || [];
   });
 
   function addDUPair() {
@@ -31,6 +35,7 @@
     };
 
     duPairs = [...duPairs, pair];
+    setDUPairs(duPairs);
     varName = '';
     defNode = '';
     useNode = '';
@@ -38,6 +43,7 @@
 
   function removePair(index: number) {
     duPairs = duPairs.filter((_, i) => i !== index);
+    setDUPairs(duPairs);
   }
 
   function getNodeLabel(id: string | number): string {

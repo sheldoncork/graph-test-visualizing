@@ -7,10 +7,11 @@
   import { edgeCoverageService } from '$lib/services/edgeCoverageService';
   import { mccabeComplexityService } from '$lib/services/mccabeComplexityService';
   import { allPathsCoverageService } from '$lib/services/allPathsCoverageService';
-  import type { Graph, TestPath, CoverageResult, CoverageMetricType } from '$lib/utils/types';
+  import type { Graph, TestPath, CoverageResult, CoverageMetricType, DefUsePair } from '$lib/utils/types';
 
   let graph: Graph | null = null;
   let testPaths: TestPath[] = [];
+  let duPairs: DefUsePair[] = [];
   let selectedMetrics: Set<CoverageMetricType> = new Set(['du-pair', 'prime-path']);
   let isCalculating = false;
 
@@ -20,9 +21,82 @@
 
   metricsStore.subscribe((store) => {
     testPaths = store.testPaths;
+    duPairs = store.duPairs;
     selectedMetrics = store.selectedMetrics;
     isCalculating = store.isCalculating;
   });
+
+  function normalizeGraphIds(input: Graph): Graph {
+    return {
+      ...input,
+      nodes: input.nodes.map((node) => ({ ...node, id: String(node.id) })),
+      edges: input.edges.map((edge, index) => ({
+        ...edge,
+        source: String(edge.source),
+        target: String(edge.target),
+        id: (edge as { id?: string }).id || `${String(edge.source)}->${String(edge.target)}#${index}`,
+      })),
+    };
+  }
+
+  function normalizeTestPaths(input: TestPath[]): string[][] {
+    return input.map((path) => path.path.map((nodeId) => String(nodeId)));
+  }
+
+  function buildDUPairsForService(
+    normalizedGraph: Graph,
+    pairs: DefUsePair[]
+  ): Array<{ definition: { id: string; variable: string; nodeId: string }; use: { id: string; variable: string; nodeId: string } }> {
+    const markings = new Map<string, { defs: string[]; uses: string[] }>();
+
+    for (const pair of pairs) {
+      const variable = pair.variable?.trim();
+      if (!variable) continue;
+
+      const defNodeId = String(pair.definition);
+      const useNodeId = String(pair.use);
+
+      const defMark = markings.get(defNodeId) || { defs: [], uses: [] };
+      if (!defMark.defs.includes(variable)) {
+        defMark.defs.push(variable);
+      }
+      markings.set(defNodeId, defMark);
+
+      const useMark = markings.get(useNodeId) || { defs: [], uses: [] };
+      if (!useMark.uses.includes(variable)) {
+        useMark.uses.push(variable);
+      }
+      markings.set(useNodeId, useMark);
+    }
+
+    const extracted = duPairCoverageService.extractDefinitionsAndUses(normalizedGraph, markings);
+    const defsByVariable = new Map<string, Array<{ id: string; variable: string; nodeId: string }>>();
+    const usesByVariable = new Map<string, Array<{ id: string; variable: string; nodeId: string }>>();
+
+    for (const definition of extracted.definitions) {
+      const arr = defsByVariable.get(definition.variable) || [];
+      arr.push(definition);
+      defsByVariable.set(definition.variable, arr);
+    }
+
+    for (const use of extracted.uses) {
+      const arr = usesByVariable.get(use.variable) || [];
+      arr.push(use);
+      usesByVariable.set(use.variable, arr);
+    }
+
+    const servicePairs: Array<{ definition: { id: string; variable: string; nodeId: string }; use: { id: string; variable: string; nodeId: string } }> = [];
+    for (const [variable, defs] of defsByVariable.entries()) {
+      const uses = usesByVariable.get(variable) || [];
+      for (const definition of defs) {
+        for (const use of uses) {
+          servicePairs.push({ definition, use });
+        }
+      }
+    }
+
+    return servicePairs;
+  }
 
   async function calculateCoverage() {
     if (!graph) {
@@ -39,11 +113,27 @@
     setMetricsError(null);
 
     try {
+      const emptyMetric = (type: CoverageMetricType) => ({
+        type,
+        totalRequirements: 0,
+        coveredRequirements: 0,
+        coverage: 0,
+        details: {},
+        uncoveredItems: [],
+      });
+
       const result: CoverageResult = {
         id: `coverage-${Date.now()}`,
         graphId: graph.id,
         timestamp: new Date(),
-        metrics: {},
+        metrics: {
+          'du-pair': emptyMetric('du-pair'),
+          'prime-path': emptyMetric('prime-path'),
+          'node': emptyMetric('node'),
+          'edge': emptyMetric('edge'),
+          'all-paths': emptyMetric('all-paths'),
+          'mcc': emptyMetric('mcc'),
+        },
         testPaths,
         summary: {
           overallCoverage: 0,
@@ -52,13 +142,72 @@
         },
       };
 
+      const normalizedGraph = normalizeGraphIds(graph);
+      const normalizedTestPaths = normalizeTestPaths(testPaths);
+
       const metricCalculations: Record<CoverageMetricType, () => any> = {
-        'du-pair': () => duPairCoverageService.calculateCoverage(graph!, testPaths),
-        'prime-path': () => primePathCoverageService.calculateCoverage(graph!, testPaths),
-        'node': () => nodeCoverageService.calculateCoverage(graph!, testPaths),
-        'edge': () => edgeCoverageService.calculateCoverage(graph!, testPaths),
-        'all-paths': () => allPathsCoverageService.calculateCoverage(graph!, testPaths),
-        'mcc': () => mccabeComplexityService.calculateCoverage(graph!, testPaths),
+        'du-pair': () => {
+          const servicePairs = buildDUPairsForService(normalizedGraph, duPairs);
+          const du = duPairCoverageService.calculateDUPairCoverage(normalizedGraph, servicePairs, normalizedTestPaths);
+          return {
+            total: du.totalDUPairs,
+            covered: du.coveredDUPairs,
+            percentage: du.coverage,
+            details: { coveredPairs: du.duPairCoverage.length },
+            uncovered: []
+          };
+        },
+        'prime-path': () => {
+          const primePaths = primePathCoverageService.enumeratePrimePaths(normalizedGraph);
+          const prime = primePathCoverageService.calculatePrimePathCoverage(primePaths, normalizedTestPaths);
+          return {
+            total: prime.totalPrimePaths,
+            covered: prime.coveredPrimePaths,
+            percentage: prime.coverage,
+            details: { pathCount: prime.primePathCoverage.length },
+            uncovered: []
+          };
+        },
+        'node': () => {
+          const node = nodeCoverageService.calculateNodeCoverage(normalizedGraph, normalizedTestPaths);
+          return {
+            total: node.totalNodes,
+            covered: node.coveredNodes,
+            percentage: node.coverage,
+            details: { uncovered: node.uncoveredNodes },
+            uncovered: []
+          };
+        },
+        'edge': () => {
+          const edge = edgeCoverageService.calculateEdgeCoverage(normalizedGraph, normalizedTestPaths);
+          return {
+            total: edge.totalEdges,
+            covered: edge.coveredEdges,
+            percentage: edge.coverage,
+            details: { uncovered: edge.uncoveredEdges },
+            uncovered: []
+          };
+        },
+        'all-paths': () => {
+          const all = allPathsCoverageService.calculateAllPathsCoverage(normalizedGraph, normalizedTestPaths);
+          return {
+            total: all.totalAllPaths,
+            covered: all.coveredAllPaths,
+            percentage: all.coverage,
+            details: { uncovered: all.uncoveredAllPaths },
+            uncovered: []
+          };
+        },
+        'mcc': () => {
+          const mcc = mccabeComplexityService.calculateLinearlyIndependentPaths(normalizedGraph, normalizedTestPaths);
+          return {
+            total: mcc.requiredTestPaths,
+            covered: mcc.basisPathsCovered,
+            percentage: mcc.coverage,
+            details: { complexity: mcc.cyclomaticComplexity },
+            uncovered: []
+          };
+        },
       };
 
       let totalCoverage = 0;
@@ -67,7 +216,7 @@
       for (const metric of selectedMetrics) {
         const calculator = metricCalculations[metric];
         if (calculator) {
-          const coverageData = await calculator();
+          const coverageData = calculator();
           result.metrics[metric] = {
             type: metric,
             totalRequirements: coverageData.total,
