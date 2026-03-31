@@ -6,7 +6,6 @@ yarn-error.log
 yarn-debug.log
 .npm
 *.tgz
-pnpm-lock.yaml
 yarn.lock
 
 # Vite / SvelteKit build
