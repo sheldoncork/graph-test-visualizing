@@ -1,0 +1,27 @@
+{
+  "id": "acyclic-graph",
+  "name": "Acyclic Control Flow Graph",
+  "nodes": [
+    { "id": "1", "label": "Start", "type": "entry" },
+    { "id": "2", "label": "x = 0" },
+    { "id": "3", "label": "y = 1" },
+    { "id": "4", "label": "z = x + y" },
+    { "id": "5", "label": "if z > 5" },
+    { "id": "6", "label": "x = z" },
+    { "id": "7", "label": "print x" },
+    { "id": "8", "label": "print z" },
+    { "id": "9", "label": "End", "type": "exit" }
+  ],
+  "edges": [
+    { "source": "1", "target": "2", "label": "" },
+    { "source": "2", "target": "3", "label": "" },
+    { "source": "3", "target": "4", "label": "" },
+    { "source": "4", "target": "5", "label": "" },
+    { "source": "5", "target": "6", "label": "true" },
+    { "source": "5", "target": "7", "label": "false" },
+    { "source": "6", "target": "8", "label": "" },
+    { "source": "7", "target": "9", "label": "" },
+    { "source": "8", "target": "9", "label": "" }
+  ],
+  "isCyclic": false
+}

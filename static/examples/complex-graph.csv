@@ -1,0 +1,9 @@
+source,target,label
+A,B,assign x
+A,C,read y
+B,D,test x > 0
+C,D,test y < 5
+D,E,print result
+D,F,error branch
+E,G,end
+F,G,end

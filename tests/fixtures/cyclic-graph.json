@@ -1,0 +1,23 @@
+{
+  "id": "cyclic-graph",
+  "name": "Graph with Cycle",
+  "nodes": [
+    { "id": "1", "label": "Start", "type": "entry" },
+    { "id": "2", "label": "i = 0" },
+    { "id": "3", "label": "i < 10" },
+    { "id": "4", "label": "sum += i" },
+    { "id": "5", "label": "i++" },
+    { "id": "6", "label": "print sum" },
+    { "id": "7", "label": "End", "type": "exit" }
+  ],
+  "edges": [
+    { "source": "1", "target": "2", "label": "" },
+    { "source": "2", "target": "3", "label": "" },
+    { "source": "3", "target": "4", "label": "true" },
+    { "source": "3", "target": "6", "label": "false" },
+    { "source": "4", "target": "5", "label": "" },
+    { "source": "5", "target": "3", "label": "" },
+    { "source": "6", "target": "7", "label": "" }
+  ],
+  "isCyclic": true
+}

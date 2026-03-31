@@ -1,50 +1,39 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Graph Testing Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Test-Driven Development (TDD)
+Tests MUST be written before code implementation. The Red-Green-Refactor cycle is non-negotiable: tests written and approved → tests fail → implementation follows → tests pass → refactor for clarity. Every feature, bug fix, and refactoring effort requires test coverage. This ensures correctness, maintainability, and confidence in graph-testing functionality.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Performance Excellence
+All code changes MUST consider runtime efficiency and resource utilization. Performance regressions are treated as critical issues. Code reviews MUST include performance analysis for operations affecting graph traversal, loading, or computation. Optimizations are justified and measured—no ad-hoc performance tweaks without benchmarking.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Clean Code Practices
+Code MUST follow industry-standard conventions for readability, naming, and structure. SOLID principles apply: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion. Complexity must be justified; cyclomatic complexity thresholds are enforced. Functions should be small, focused, and testable.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Comprehensive Code Review
+Every pull request requires peer review before merge. Reviewers MUST verify compliance with principles I–III. Code quality metrics, test coverage, and performance implications must be explicitly addressed. Reviews are constructive and focused on improving maintainability and correctness.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Clear Documentation
+Code MUST be self-documenting. Comments explain *why*, not *what*. Public APIs require docstrings with examples. Complex algorithms must include inline explanation. README and architecture guides keep contributors and users aligned. Documentation lives alongside code and is updated with every change.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Quality Standards
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Code must pass static analysis (linting, type checking). Test coverage MUST exceed 80% for all production code. Performance benchmarks establish baselines; regressions trigger investigation. Security practices are enforced: no hardcoded secrets, input validation on all boundaries, dependency management up to date.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+1. **Specification**: Features are described and approved before coding.
+2. **Test Writing**: Tests are written first, fail validation is confirmed.
+3. **Implementation**: Code is developed to pass tests without scope creep.
+4. **Review**: Peer reviews verify compliance and quality.
+5. **Merge**: Only when all checks pass and reviewers approve.
+6. **Documentation**: Changes are documented immediately upon merge.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other practices and conventions. It is enforced through automated tooling (linters, test coverage gates) and human review. All PRs must reference and verify compliance with at least one principle. When conflicts arise between convenience and these principles, the principles prevail.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Amendments must be documented, justified, and approved by the project team. Version bumping follows semantic versioning: MAJOR for principle removals/redefinitions, MINOR for expansions, PATCH for clarifications.
+
+**Version**: 1.0.0 | **Ratified**: 2026-03-31 | **Last Amended**: 2026-03-31

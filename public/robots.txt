@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /graph-testing/
+
+Sitemap: https://github.com/sheld/graph-testing/sitemap.xml

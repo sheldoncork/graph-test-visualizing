@@ -1,0 +1,19 @@
+{
+  "id": "simple-graph",
+  "name": "Simple Graph",
+  "nodes": [
+    { "id": "1", "label": "Start", "type": "entry" },
+    { "id": "2", "label": "Process" },
+    { "id": "3", "label": "Decision" },
+    { "id": "4", "label": "Result" },
+    { "id": "5", "label": "End", "type": "exit" }
+  ],
+  "edges": [
+    { "source": "1", "target": "2", "label": "enter" },
+    { "source": "2", "target": "3", "label": "process" },
+    { "source": "3", "target": "4", "label": "yes" },
+    { "source": "3", "target": "5", "label": "no" },
+    { "source": "4", "target": "5", "label": "end" }
+  ],
+  "isCyclic": false
+}
